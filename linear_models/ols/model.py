@@ -5,46 +5,28 @@ import numpy as np
 
 
 class OrdinaryLeastSquares(object):
-    def __init__(self, learning_rate=1e-6):
+    def __init__(self):
         self.fitted = False
         self.weights = None
         self.bias = None
-        self.learning_rate = learning_rate
 
-    @staticmethod
-    def mean_squared_error(y_true, y_pred):
-        return (1./y_pred.shape[0]) * np.linalg.norm(y_true.reshape(-1, 1) - y_pred) ** 2
-
-    def train(self, X, y, epochs=1000, verbose=False):
+    def train(self, X, y):
         assert len(X.shape) == 2
         assert len(y.shape) <= 2
 
-        if not self.bias:
-            self.bias = np.random.normal()
+        X_tilde = np.append(np.ones((X.shape[0], 1)), X, axis=1)
 
-        if not self.weights:
-            self.weights = np.random.normal(size=(X.shape[1], 1))
+        weights = np.dot(X_tilde.T, X_tilde)
+        weights = np.linalg.inv(weights)
+        weights = np.dot(weights, X_tilde.T)
+        weights = np.dot(weights, y.reshape(X.shape[0], -1))
 
+        self.bias = weights[0, :]
+        self.weights = weights[1:, :]
         self.fitted = True
-
-        prevision = self.predict(X)
-        if verbose:
-            error = self.mean_squared_error(y, prevision)
-            print("MSE = {}".format(error))
-
-        for _ in range(epochs):
-
-            weights_update = np.dot(X.T, (prevision - y.reshape(-1, 1)))
-            bias_update = np.dot(np.ones(shape=(X.shape[0], 1)).T, (prevision - y.reshape(-1, 1)))
-
-            self.weights += - weights_update * self.learning_rate
-            self.bias = - bias_update * self.learning_rate
-
-            prevision = self.predict(X)
-            if verbose:
-                error = self.mean_squared_error(y, prevision)
-                print("MSE = {}".format(error))
 
     def predict(self, X):
         assert self.fitted
-        return np.dot(X, self.weights) + self.bias * np.ones(shape=(X.shape[0], 1))
+
+        prevision = np.dot(X, self.weights) + self.bias * np.ones((X.shape[0], 1))
+        return prevision.reshape(-1)

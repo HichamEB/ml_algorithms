@@ -21,12 +21,17 @@ def main():
     noise = np.random.normal(size=(n_samples,))
     y_noisy = y + noise
 
-    model = OrdinaryLeastSquares()  # OLS trained with Gradient Descent
-    model.train(X.reshape(-1, 1), y, verbose=True)
+    X_polynomial = np.append(X.reshape(n_samples, -1), X.reshape(n_samples, -1)**2, axis=1)
+    X_polynomial = np.append(X_polynomial, X.reshape(n_samples, -1) ** 3, axis=1)
+
+    model = OrdinaryLeastSquares()
+    # model.train(X.reshape(n_samples, -1), y)
+    model.train(X_polynomial, y)
     print("OLS weights : {}".format(model.weights))
     print("OLS bias : {}".format(model.bias))
 
-    y_predicted = model.predict(X.reshape(-1, 1))
+    # y_predicted = model.predict(X.reshape(n_samples, -1))
+    y_predicted = model.predict(X_polynomial)
 
     plt.scatter(X, y, label="ground_truth", alpha=0.5)
     plt.scatter(X, y_noisy, label="signal", alpha=0.5)
